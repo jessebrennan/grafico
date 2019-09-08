@@ -15,4 +15,11 @@ interface with the data.
    source .venv/bin/activate
    ```
 
-3. 
+3. Install Gremlin Python specifics
+   ```
+   apache-tinkerpop-gremlin-server-3.4.3/bin/gremlin-server.sh install org.apache.tinkerpop gremlin-python 3.4.3
+   ```
+   ```
+   pip install gremlinpython
+   ```
+
