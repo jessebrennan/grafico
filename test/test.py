@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import subprocess
@@ -10,6 +11,7 @@ from gremlin_python.driver.driver_remote_connection import DriverRemoteConnectio
 from gremlin_python.process.anonymous_traversal import traversal
 
 from grafico import config
+from grafico.load import extract_json, Entity
 
 log = logging.getLogger(__file__)
 
@@ -46,3 +48,21 @@ class GraficoTestCase(unittest.TestCase):
     def test_server_runs(self):
         g = traversal().withRemote(DriverRemoteConnection('ws://localhost:8182/gremlin', 'g'))
         print(g.V().values())
+
+
+class TestEntity(unittest.TestCase):
+
+    def test_load_entity_json(self):
+        metadata = load_test_file('metadata.json')
+        entities = list(extract_json(metadata))
+        self.assertEqual(len(entities), 329)
+        for entity in entities:
+            self.assertEqual(type(entity), Entity)
+            self.assertIn(entity.entity_type, ('file', 'biomaterial', 'process', 'protocol'))
+            self.assertEqual(len({e.document_id for e in entities}), len(entities))
+
+
+def load_test_file(file_name):
+    path = os.path.join(config.project_root, 'test', 'data', file_name)
+    with open(path, 'r') as f:
+        return json.load(f)
