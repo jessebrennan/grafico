@@ -12,28 +12,35 @@ class Entity:
     document_id: str
     properties: Mapping[str, Any]
 
-    @classmethod
-    def from_json(cls, file_name: str, metadata: JSON) -> Iterable['Entity']:
-        entity_type = cls._entity_type(file_name)
+
+class Transformer:
+
+    def extract_json(self, json: JSON) -> Iterable[Entity]:
+        for file_name, metadata in json.items():
+            if file_name not in ('links.json', 'project.json'):
+                for entity in self.from_json(file_name, metadata):
+                    yield entity
+            else:
+                pass
+
+    def from_json(self, file_name: str, metadata: JSON) -> Iterable['Entity']:
+        entity_type = self._entity_type(file_name)
         content_key = next((k for k in metadata if k.startswith(entity_type)))
-        return (cls(
+        return (Entity(
             entity_type=entity_type,
-            document_id=cls._document_id(entity_content),
-            properties=cls._properties(entity_content)
+            document_id=self._document_id(entity_content),
+            properties=self._properties(entity_content)
         ) for entity_content in metadata[content_key])
 
-    @classmethod
-    def _entity_type(cls, file_name) -> str:
+    def _entity_type(self, file_name) -> str:
         suffix = '.json'
         assert file_name.endswith(suffix)
         return file_name[:-len(suffix)]
 
-    @classmethod
-    def _document_id(cls, metadata) -> str:
+    def _document_id(self, metadata) -> str:
         return metadata['hca_ingest']['document_id']
 
-    @classmethod
-    def _properties(cls, content: Mapping[str, Any]) -> Mapping[str, Any]:
+    def _properties(self, content: Mapping[str, Any]) -> Mapping[str, Any]:
         properties = {}
         for k, v in content['content'].items():
             if type(v) == dict:
@@ -46,12 +53,3 @@ class Entity:
                 assert type(v) in (str, int, float, bool)
                 properties[k] = v
         return properties
-
-
-def extract_json(json: JSON) -> Iterable[Entity]:
-    for file_name, metadata in json.items():
-        if file_name not in ('links.json', 'project.json'):
-            for entity in Entity.from_json(file_name, metadata):
-                yield entity
-        else:
-            pass

@@ -11,7 +11,7 @@ from gremlin_python.driver.driver_remote_connection import DriverRemoteConnectio
 from gremlin_python.process.anonymous_traversal import traversal
 
 from grafico import config
-from grafico.load import extract_json, Entity
+from grafico.load import Entity, Transformer
 
 log = logging.getLogger(__file__)
 
@@ -54,7 +54,8 @@ class TestEntity(unittest.TestCase):
 
     def test_load_entity_json(self):
         metadata = load_test_file('metadata.json')
-        entities = list(extract_json(metadata))
+        transformer = Transformer()
+        entities = list(transformer.extract_json(metadata))
         self.assertEqual(len(entities), 329)
         for entity in entities:
             self.assertEqual(type(entity), Entity)
